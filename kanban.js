@@ -113,38 +113,3 @@ const columnCount = () => {
   pending.textContent = data[1].tasks.length;
   completed.textContent = data[2].tasks.length;
 };
-
-// console.log(Kanban.getAllTasks());
-// console.log(JSON.parse(localStorage.setItem("data", JSON.stringify(data))));
-
-// console.log(JSON.parse(localStorage.getItem("data")));
-
-// Selectors
-
-// const addForm = document.querySelector(".add");
-
-// Add task functionality to UI
-
-// const addTask = (event) => {
-//   event.preventDefault();
-
-//   console.log(addForm.button);
-// };
-
-// Fetch all tasks from localStorage and render them to UI
-
-// Delete task functionality to UI
-
-// Update task functionality to UI
-
-// Kanban.updateTask(38833, {
-//   columnId: 2,
-//   content: "Listen song",
-// });
-
-// Kanban.updateTask(44183, {
-//   columnId: 2,
-//   content: "Go to mindvalley University ",
-// });
-
-// Kanban.addTask(0, "Buy a vida v1 pro");

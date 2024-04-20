@@ -1,115 +1,98 @@
-export default class Kanban {
-  static getTasks(columnId) {
-    const data = read().find((column) => column.columnId === columnId);
-    if (!data) {
-      return [];
-    }
-    return data?.tasks;
+// Kanban class consists of all the methods
+// 2 independent functions - read(get data from data source) and save(save changes)
+// Note - The firestore will be used for data storage. I am using localStorage because of net error
+
+const read = () => {
+  const data = JSON.parse(localStorage.getItem("data"));
+  return data ?? [];
+};
+
+const save = (data) => {
+  localStorage.setItem("data", JSON.stringify(data));
+};
+
+const countTasks = (columnId) => {
+  const data = read();
+  const count = data.find((item) => item.columnId == columnId).tasks.length;
+  return count;
+};
+
+export class Kanban {
+  // get tasks
+
+  static getAllTasks() {
+    const data = read();
+
+    return [[...data[0].tasks], [...data[1].tasks], [...data[2].tasks]];
   }
 
   static addTask(columnId, content) {
-    // get all tasks
-
     const data = read();
 
-    // find the column having columnId
-    const column = data.find((column) => column.columnId == columnId);
-    // push new task to the task list of data
-
-    console.log(column);
-
-    const task = {
-      taskId: Math.floor(Math.random() * 100000),
-      content,
-    };
-
-    column.tasks.push(task);
-
-    // update the localstorage
-    save(data);
-
-    return task;
-  }
-
-  static updateTask(taskId, updatedContent) {
-    const data = read();
-
-    // find the current position of the task - task, column
-
-    const currentTaskLocation = [];
-    data.map((column) => {
-      const task = column.tasks.find((task) => task.taskId === Number(taskId));
-      if (task) {
-        currentTaskLocation.push(task, column);
-      }
-    });
-
-    const [task, column] = currentTaskLocation;
-
-    // delete the task from the column
+    const task = { taskId: new Date().getTime(), content };
 
     data.map((item) => {
-      if (item.columnId === Number(column.columnId)) {
-        return (item.tasks = item.tasks.filter(
-          (task) => task.taskId !== Number(taskId)
-        ));
+      if (item.columnId == columnId) {
+        item.tasks = [...item.tasks, task];
       }
     });
-
-    // Add the task to the desired column and update its content with new content
-
-    task.content = updatedContent.content;
-
-    data
-      .find((item) => item.columnId === Number(updatedContent.columnId))
-      .tasks.push(task);
-
     save(data);
+    return task;
   }
 
   static deleteTask(taskId) {
     const data = read();
 
-    data.map((column) => {
-      return (column.tasks = column.tasks.filter(
-        (task) => task.taskId !== Number(taskId)
-      ));
+    data.map((col) => {
+      let task = col.tasks.find((item) => item.taskId == taskId);
+      if (task) {
+        col.tasks = col.tasks.filter((task) => task.taskId != taskId);
+      }
     });
 
     save(data);
   }
 
-  static getAllTasks() {
+  static updateTask(columnId, { taskId, content }) {
     const data = read();
-    columnCount();
-    return [data[0].tasks, data[1].tasks, data[2].tasks];
+
+    //   find the column
+
+    let column = {};
+
+    data.map((col) => {
+      let task = col.tasks.find((item) => item.taskId == taskId);
+      if (task) {
+        column = {
+          id: col.columnId,
+        };
+      }
+    });
+
+    // Delete from previous column
+
+    data.map((col) => {
+      if (col.columnId == column.id) {
+        col.tasks = col.tasks.filter((item) => item.taskId != taskId);
+      }
+    });
+
+    // Update the content
+
+    const task = {
+      taskId,
+      content,
+    };
+
+    // Add to desired column
+    data.map((item) => {
+      if (item.columnId == columnId) {
+        item.tasks = [...item.tasks, task];
+      }
+    });
+
+    // Save changes
+
+    save(data);
   }
 }
-
-function read() {
-  const data = localStorage.getItem("data");
-  if (!data) {
-    return [
-      { columnId: 0, tasks: [] },
-      { columnId: 1, tasks: [] },
-      { columnId: 2, tasks: [] },
-    ];
-  }
-  return JSON.parse(data);
-}
-
-function save(data) {
-  localStorage.setItem("data", JSON.stringify(data));
-  columnCount();
-}
-
-const columnCount = () => {
-  const data = read();
-  const todo = document.querySelector("span.todo");
-  const pending = document.querySelector("span.pending");
-  const completed = document.querySelector("span.completed");
-
-  todo.textContent = data[0].tasks.length;
-  pending.textContent = data[1].tasks.length;
-  completed.textContent = data[2].tasks.length;
-};
